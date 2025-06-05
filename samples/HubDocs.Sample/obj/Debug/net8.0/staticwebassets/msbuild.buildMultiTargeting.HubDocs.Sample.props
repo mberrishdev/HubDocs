@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/HubDocs.Sample.props" />
+</Project>

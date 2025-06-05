@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# 
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HubDocs", "src\HubDocs\HubDocs.csproj", "{4C70A2D0-D7C3-4710-A729-C97A4569FB46}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{1BB8D4C3-FAB0-41D6-BD15-52542972C550}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HubDocs.Sample", "samples\HubDocs.Sample\HubDocs.Sample.csproj", "{9CA89884-840A-433D-B6FD-DD246A2DB271}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C70A2D0-D7C3-4710-A729-C97A4569FB46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C70A2D0-D7C3-4710-A729-C97A4569FB46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C70A2D0-D7C3-4710-A729-C97A4569FB46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C70A2D0-D7C3-4710-A729-C97A4569FB46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CA89884-840A-433D-B6FD-DD246A2DB271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CA89884-840A-433D-B6FD-DD246A2DB271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CA89884-840A-433D-B6FD-DD246A2DB271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CA89884-840A-433D-B6FD-DD246A2DB271}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9CA89884-840A-433D-B6FD-DD246A2DB271} = {1BB8D4C3-FAB0-41D6-BD15-52542972C550}
+	EndGlobalSection
+EndGlobal

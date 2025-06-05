@@ -1,0 +1,13 @@
+/Users/mberrish/Apps/HubDocs/src/HubDocs/bin/Debug/net9.0/wwwroot/signalr-explorer.html
+/Users/mberrish/Apps/HubDocs/src/HubDocs/bin/Debug/net9.0/HubDocs.deps.json
+/Users/mberrish/Apps/HubDocs/src/HubDocs/bin/Debug/net9.0/HubDocs.dll
+/Users/mberrish/Apps/HubDocs/src/HubDocs/bin/Debug/net9.0/HubDocs.pdb
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.csproj.AssemblyReference.cache
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.GeneratedMSBuildEditorConfig.editorconfig
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.AssemblyInfoInputs.cache
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.AssemblyInfo.cs
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.csproj.CoreCompileInputs.cache
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.dll
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/refint/HubDocs.dll
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/HubDocs.pdb
+/Users/mberrish/Apps/HubDocs/src/HubDocs/obj/Debug/net9.0/ref/HubDocs.dll

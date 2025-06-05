@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 p-6">
+    <h1 class="text-3xl font-bold mb-6">🛰️ SignalR Hubs Explorer</h1>
+    <div id="hubs" class="space-y-4"></div>
+
+    <script>
+    fetch('/signalr-metadata')
+        .then(res => res.json())
+        .then(hubs => {
+            const container = document.getElementById('hubs');
+            if (hubs.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No SignalR hubs found.</p>';
+                return;
+            }
+
+            hubs.forEach(hub => {
+                const hubCard = document.createElement('div');
+                hubCard.className = 'bg-white shadow rounded-lg p-4 border border-gray-200';
+
+                const methods = hub.methods.map(m =>
+                    `<div class="bg-blue-50 p-3 rounded-md">
+                        <div class="font-medium text-blue-800">${m.methodName}(${m.parameterTypes.join(', ')})</div>
+                        <div class="text-sm text-gray-600">Returns: <code>${m.returnType}</code></div>
+                    </div>`
+                ).join('');
+
+                hubCard.innerHTML = `
+                    <div class="flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                        <h2 class="text-xl font-semibold text-blue-600">${hub.hubName}</h2>
+                        <span class="text-sm text-gray-500">${hub.hubFullName}</span>
+                    </div>
+                    <div class="mt-4 space-y-2 hidden">${methods}</div>
+                `;
+
+                container.appendChild(hubCard);
+            });
+        });
+    </script>
+</body>
+</html> 

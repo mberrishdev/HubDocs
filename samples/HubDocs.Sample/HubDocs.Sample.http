@@ -1,0 +1,6 @@
+@HubDocs.Sample_HostAddress = http://localhost:5048
+
+GET {{HubDocs.Sample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

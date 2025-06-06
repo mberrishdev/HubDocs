@@ -9,6 +9,14 @@ A Swagger-like UI for exploring and documenting SignalR hubs in ASP.NET Core app
 - 🎨 Beautiful Swagger-inspired dark theme UI
 - 🔌 Easy integration with minimal configuration
 
+## Screenshots
+
+![HubDocs UI](https://i.ibb.co/84LpzNFv/Screenshot-2025-06-06-at-11-08-50.png)
+![HubDocs UI](https://i.ibb.co/k2BpY2Hh/Screenshot-2025-06-06-at-11-09-01.png)
+
+
+*HubDocs UI showing SignalR hubs and their methods*
+
 ## Installation
 
 ```bash

@@ -1,9 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>HubDocs</PackageId>
+        <Version>0.0.2-alpha</Version>
+        <Company>BerrishDev</Company>
+        <Product>HubDocs</Product>
+        <Description>Swagger-like documentation UI for SignalR Hubs</Description>
+        <PackageTags>SignalR Hubs Swagger Documentation Explorer HubDocs</PackageTags>
+        <RepositoryUrl>https://github.com/mberrishdev/HubDocs</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/mberrishdev/HubDocs</PackageProjectUrl>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +29,10 @@
 
     <ItemGroup>
         <EmbeddedResource Include="wwwroot/hubdocs.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
 </Project>

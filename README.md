@@ -13,6 +13,10 @@ HubDocs is a powerful tool for exploring and documenting SignalR hubs in your AS
 - 🔌 **Easy Integration**: Simple setup with just a few lines of code
 - 📦 **NuGet Package**: Easy to install and use in any ASP.NET Core project
 
+![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/my-screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/my-screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/my-screenshot.png)
+
 ## Installation
 
 ```bash

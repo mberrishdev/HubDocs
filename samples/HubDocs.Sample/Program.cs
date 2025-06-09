@@ -26,11 +26,11 @@ app.UseAuthorization();
 app.UseStaticFiles();
 
 // Map SignalR hubs
-app.MapHub<ChatHub>("/hubs/chat");
+app.MapHubAndRegister<ChatHub>("/hubs/chat");
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Configure HubDocs middleware
-app.AddHubDocs(typeof(ChatHub).Assembly, typeof(NotificationHub).Assembly);
+app.AddHubDocs();
 
 app.MapControllers();
 

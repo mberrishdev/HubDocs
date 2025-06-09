@@ -2,14 +2,28 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
+
 
 namespace HubDocs;
 
 public static class SignalRDiscoveryExtensions
 {
-    public static WebApplication AddHubDocs(this WebApplication app, params Assembly[] assemblies)
+    public static void MapHubAndRegister<T>(this IEndpointRouteBuilder endpoints, string pattern)
+        where T : Hub
     {
+        endpoints.MapHub<T>(pattern);
+        HubRouteRegistry.AddMapping<T>(pattern);
+    }
+
+    public static WebApplication AddHubDocs(this WebApplication app)
+    {
+        var assemblies = HubRouteRegistry.GetMappings()
+            .Select(m => m.HubType.Assembly)
+            .Distinct()
+            .ToArray();
+
         app.MapGet("/hubdocs/hubdocs.json", () =>
             {
                 var metadata = assemblies.DiscoverSignalRHubs();
@@ -37,6 +51,11 @@ public static class SignalRDiscoveryExtensions
             await context.Response.WriteAsync(html);
         });
 
+        app.MapGet("/hubdocs", context => {
+            context.Response.Redirect("/hubdocs/index.html", permanent: false);
+            return Task.CompletedTask;
+        }).ExcludeFromDescription();
+
         return app;
     }
 
@@ -45,23 +64,31 @@ public static class SignalRDiscoveryExtensions
         return assemblies
             .SelectMany(a => a.GetTypes())
             .Where(t => typeof(Hub).IsAssignableFrom(t) && !t.IsAbstract)
-            .Select(hubType => new HubMetadata
+            .Select(hubType =>
             {
-                HubName = hubType.Name,
-                HubFullName = hubType.FullName!,
-                Methods = GetAllPublicHubMethods(hubType)
-                    .GroupBy(GetMethodSignature)
-                    .Select(g => g.First())
-                    .Select(m => new HubMethodMetadata
-                    {
-                        MethodName = m.Name,
-                        ParameterTypes = m.GetParameters()
-                            .Select(FormatParameter)
-                            .ToList(),
-                        ReturnType = FormatType(m.ReturnType)
-                    })
-                    .ToList()
+                var mapping = HubRouteRegistry.GetMappings()
+                    .FirstOrDefault(m => m.HubType == hubType);
+
+                return new HubMetadata
+                {
+                    HubName = hubType.Name,
+                    HubFullName = hubType.FullName!,
+                    Path = mapping?.Path, 
+                    Methods = GetAllPublicHubMethods(hubType)
+                        .GroupBy(GetMethodSignature)
+                        .Select(g => g.First())
+                        .Select(m => new HubMethodMetadata
+                        {
+                            MethodName = m.Name,
+                            ParameterTypes = m.GetParameters()
+                                .Select(FormatParameter)
+                                .ToList(),
+                            ReturnType = FormatType(m.ReturnType)
+                        })
+                        .ToList()
+                };
             })
+
             .DistinctBy(x => x.HubName);
     }
 

@@ -1,141 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HubDocs - SignalR Explorer</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2346b3e6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2346b3e6'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
-        .method-badge {
-            @apply px-2 py-1 text-xs font-semibold rounded;
-        }
-        .method-badge.get { @apply bg-green-100 text-green-800; }
-        .method-badge.post { @apply bg-blue-100 text-blue-800; }
-        .method-badge.put { @apply bg-yellow-100 text-yellow-800; }
-        .method-badge.delete { @apply bg-red-100 text-red-800; }
+      .method-badge {
+        @apply px-2 py-1 text-xs font-semibold rounded;
+      }
+      .method-badge.get {
+        @apply bg-green-100 text-green-800;
+      }
+      .method-badge.post {
+        @apply bg-blue-100 text-blue-800;
+      }
+      .method-badge.put {
+        @apply bg-yellow-100 text-yellow-800;
+      }
+      .method-badge.delete {
+        @apply bg-red-100 text-red-800;
+      }
     </style>
-</head>
-<body class="bg-[#1a1a1a] text-gray-200 min-h-screen">
+  </head>
+  <body class="bg-[#1a1a1a] text-gray-200 min-h-screen">
     <div class="container mx-auto px-4 py-8">
-        <header class="mb-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="w-8 h-8">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="text-blue-500">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-bold text-white">HubDocs</h1>
-                        <p class="text-gray-400 mt-1">SignalR Hubs Explorer</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-sm text-gray-400">
-                        <span id="hub-count">Loading hubs...</span>
-                    </div>
-                    <a href="/hubdocs/hubdocs.json" 
-                       class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-200 bg-[#2d2d2d] rounded-md hover:bg-[#363636] transition-colors"
-                       target="_blank">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
-                        </svg>
-                        JSON
-                    </a>
-                </div>
+      <header class="mb-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="text-blue-500"
+              >
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                />
+              </svg>
             </div>
-        </header>
+            <div>
+              <h1 class="text-3xl font-bold text-white">HubDocs</h1>
+              <p class="text-gray-400 mt-1">SignalR Hubs Explorer</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-sm text-gray-400">
+              <span id="hub-count">Loading hubs...</span>
+            </div>
+            <a
+              href="/hubdocs/hubdocs.json"
+              class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-200 bg-[#2d2d2d] rounded-md hover:bg-[#363636] transition-colors"
+              target="_blank"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                ></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              JSON
+            </a>
+          </div>
+        </div>
+      </header>
 
-        <div id="hubs" class="space-y-6"></div>
+      <div id="hubs" class="space-y-6"></div>
     </div>
 
+    <template id="connection-template">
+      <div
+        class="mb-4 p-4 bg-[#23272e] rounded-lg border border-[#3d3d3d] flex flex-col md:flex-row md:items-center gap-4"
+      >
+        <div class="flex-1 flex flex-col md:flex-row md:items-center gap-2">
+          <label class="text-sm text-gray-400 mr-2">Hub URL:</label>
+          <label>
+            <input
+              type="text"
+              class="hub-url-input bg-[#181c20] border border-[#3d3d3d] rounded px-2 py-1 text-gray-200 w-full md:w-72"
+              value=""
+              disabled
+            />
+          </label>
+          <button
+            class="connect-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded ml-2 transition-colors"
+          >
+            Connect
+          </button>
+          <span
+            class="status-badge ml-4 px-2 py-1 rounded text-xs font-semibold bg-gray-700 text-gray-300"
+            >Disconnected</span
+          >
+        </div>
+      </div>
+    </template>
+
     <script>
-    fetch('/hubdocs/hubdocs.json')
-        .then(res => res.json())
-        .then(hubs => {
-            const container = document.getElementById('hubs');
-            const hubCount = document.getElementById('hub-count');
-            
-            if (hubs.length === 0) {
-                container.innerHTML = '<div class="bg-[#2d2d2d] rounded-lg p-6 text-center"><p class="text-gray-400">No SignalR hubs found.</p></div>';
-                hubCount.textContent = '0 hubs';
-                return;
+      const BASE_API_URL = "";
+
+      fetch(`${BASE_API_URL}/hubdocs/hubdocs.json`)
+        .then((res) => res.json())
+        .then((hubs) => {
+          const container = document.getElementById("hubs");
+          const hubCount = document.getElementById("hub-count");
+
+          if (hubs.length === 0) {
+            container.innerHTML =
+              '<div class="bg-[#2d2d2d] rounded-lg p-6 text-center"><p class="text-gray-400">No SignalR hubs found.</p></div>';
+            hubCount.textContent = "0 hubs";
+            return;
+          }
+
+          hubCount.textContent = `${hubs.length} hub${
+            hubs.length === 1 ? "" : "s"
+          }`;
+
+          hubs.forEach((hub) => {
+            const hubCard = document.createElement("div");
+            hubCard.className =
+              "bg-[#2d2d2d] rounded-lg overflow-hidden border border-[#3d3d3d]";
+
+            console.log(hub);
+            const hasPath = hub.path != null;
+            console.log(hasPath);
+
+            const hasOnConnect =
+              hasPath &&
+              hub.methods.some(
+                (m) =>
+                  (m.methodName && m.methodName.toLowerCase()) ===
+                  "onconnectedasync"
+              );
+            let connectionSection = "";
+            if (hasOnConnect) {
+              const tmpl = document.getElementById("connection-template");
+              connectionSection = tmpl.innerHTML;
             }
 
-            hubCount.textContent = `${hubs.length} hub${hubs.length === 1 ? '' : 's'}`;
+            let hubUrlDisplay = "";
 
-            hubs.forEach(hub => {
-                const hubCard = document.createElement('div');
-                hubCard.className = 'bg-[#2d2d2d] rounded-lg overflow-hidden border border-[#3d3d3d]';
+            if (hasPath) {
+              hubUrlDisplay = `
+          <div class="mb-4 p-2 bg-[#3b3b3b] rounded text-sm">
+            <div class="mb-1 text-xs text-gray-400">Hub URL:</div>
+            <div class="font-mono text-blue-400 text-base">${hub.path}</div>
+          </div>
+        `;
+            } else {
+              hubUrlDisplay = `
+          <div class="mb-4 p-2 bg-[#3b3b3b] rounded text-sm text-red-400">
+            <div class="text-xs mb-1">No hub path registered for this hub.</div>
+            <div class="text-xs mb-2">Interactive features are disabled.</div>
+            <div class="text-xs text-gray-400">You can register this hub using:</div>
+            <pre class="bg-[#2e2e2e] text-green-400 p-2 rounded mt-1 text-xs overflow-x-auto">
+      app.MapHub&lt;${hub.hubName}&gt;("/${hub.hubName.toLowerCase()}");
+            </pre>
+          </div>
+        `;
+            }
 
-                const methods = hub.methods.map(m => {
-                    const params = m.parameterTypes.map((p, i) => 
-                        `<span class="text-blue-400">${p}</span>`
-                    ).join(', ');
+            const methods = hub.methods
+              .map((m, methodIdx) => {
+                const params = m.parameterTypes
+                  .map((p, i) => `<span class=\"text-blue-400\">${p}</span>`)
+                  .join(", ");
 
-                    return `
-                        <div class="border-t border-[#3d3d3d] p-4 hover:bg-[#363636] transition-colors">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-lg font-semibold text-white">${m.methodName}</h3>
-                                    </div>
-                                    <div class="mt-2 text-sm text-gray-400">
-                                        <span class="text-gray-500">Parameters:</span> 
-                                        <span class="font-mono">(${params})</span>
-                                    </div>
-                                    <div class="mt-1 text-sm text-gray-400">
-                                        <span class="text-gray-500">Returns:</span> 
-                                        <span class="font-mono text-blue-400">${m.returnType}</span>
-                                    </div>
-                                </div>
+                // If no path, do not show Try it button
+                const tryItButton = hasPath
+                  ? `<button class=\"tryit-btn bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded ml-4 transition-colors\" data-form-id=\"tryit-form-${hub.hubName}-${m.methodName}-${methodIdx}\">Try it</button>`
+                  : "";
+
+                const tryItFormId = `tryit-form-${hub.hubName}-${m.methodName}-${methodIdx}`;
+                const resultId = `tryit-result-${hub.hubName}-${m.methodName}-${methodIdx}`;
+                const paramInputs = m.parameterTypes
+                  .map(
+                    (p, i) =>
+                      `<input type=\"text\" name=\"param${i}\" placeholder=\"${p}\" class=\"bg-[#181c20] border border-[#3d3d3d] rounded px-2 py-1 text-gray-200 w-full mb-2\" />`
+                  )
+                  .join("");
+
+                // If no path, do not show Try it form
+                const tryItForm = hasPath
+                  ? `<form id=\"${tryItFormId}\" class=\"tryit-form mt-4 hidden\">${paramInputs}<button type=\"submit\" class=\"bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded transition-colors\">Invoke</button><div id=\"${resultId}\" class=\"mt-2 text-sm\"></div></form>`
+                  : "";
+
+                return `
+                        <div class=\"border-t border-[#3d3d3d] p-4 hover:bg-[#363636] transition-colors\">
+                          <div class=\"flex items-start justify-between\">
+                            <div class=\"flex-1\">
+                              <div class=\"flex items-center gap-2\">
+                                <h3 class=\"text-lg font-semibold text-white\">${m.methodName}</h3>
+                              </div>
+                              <div class=\"mt-2 text-sm text-gray-400\">
+                                <span class=\"text-gray-500\">Parameters:</span>
+                                <span class=\"font-mono\">(${params})</span>
+                              </div>
+                              <div class=\"mt-1 text-sm text-gray-400\">
+                                <span class=\"text-gray-500\">Returns:</span>
+                                <span class=\"font-mono text-blue-400\">${m.returnType}</span>
+                              </div>
                             </div>
+                            ${tryItButton}
+                          </div>
+                          ${tryItForm}
                         </div>
-                    `;
-                }).join('');
+                      `;
+              })
+              .join("");
 
-                hubCard.innerHTML = `
-                    <div class="p-4 bg-[#363636] border-b border-[#3d3d3d]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h2 class="text-xl font-semibold text-white">${hub.hubName}</h2>
-                                <p class="text-sm text-gray-400 mt-1">${hub.hubFullName}</p>
-                            </div>
-                            <button class="text-gray-400 hover:text-white transition-colors" onclick="this.closest('.hub-card').querySelector('.methods').classList.toggle('hidden')">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                        </div>
+            hubCard.innerHTML = `
+                    <div class="hub-header p-4 bg-[#363636] border-b border-[#3d3d3d] flex items-center justify-between cursor-pointer select-none">
+                      <div>
+                        <h2 class="text-xl font-semibold text-white">${
+                          hub.hubName
+                        }</h2>
+                        <p class="text-sm text-gray-400 mt-1">${
+                          hub.hubFullName
+                        }</p>
+                      </div>
+                      <button class="toggle-methods-btn text-gray-400 hover:text-white transition-colors ml-4" aria-label="Toggle methods" tabindex="-1">
+                        <svg class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                      </button>
                     </div>
-                    <div class="methods hidden">${methods}</div>
-                `;
+                    <div class="methods hidden">${hubUrlDisplay}${
+              hasPath ? connectionSection : ""
+            }${methods}</div>
+                  `;
 
-                hubCard.classList.add('hub-card');
-                container.appendChild(hubCard);
+            hubCard.classList.add("hub-card");
+            container.appendChild(hubCard);
+
+            const hubHeader = hubCard.querySelector(".hub-header");
+            const toggleBtn = hubCard.querySelector(".toggle-methods-btn");
+            const methodsDiv = hubCard.querySelector(".methods");
+            const chevron = toggleBtn.querySelector("svg");
+            function toggleMethods() {
+              methodsDiv.classList.toggle("hidden");
+              chevron.style.transform = methodsDiv.classList.contains("hidden")
+                ? ""
+                : "rotate(180deg)";
+            }
+            hubHeader.addEventListener("click", (e) => {
+              if (
+                e.target.closest(
+                  "input, .connect-btn, .hub-url-input, form, .tryit-btn"
+                ) &&
+                !e.target.closest(".toggle-methods-btn")
+              )
+                return;
+              toggleMethods();
+            });
+            toggleBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              toggleMethods();
             });
 
-            // Initialize syntax highlighting
-            document.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-            });
+            if (hasPath) {
+              const tryItBtns = hubCard.querySelectorAll(".tryit-btn");
+              const tryItForms = hubCard.querySelectorAll(".tryit-form");
+              tryItBtns.forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  const form = hubCard.querySelector(`#${btn.dataset.formId}`);
+                  if (form) form.classList.toggle("hidden");
+                });
+              });
+              tryItForms.forEach((form) => {
+                form.addEventListener("submit", (e) => {
+                  e.preventDefault();
+                  const resultDiv = form.querySelector(
+                    'div[id^="tryit-result-"]'
+                  );
+                  resultDiv.textContent = "Please connect to the hub first.";
+                  resultDiv.className = "mt-2 text-sm text-yellow-400";
+                });
+              });
+
+              if (hasOnConnect) {
+                const urlInput = hubCard.querySelector(".hub-url-input");
+                const connectBtn = hubCard.querySelector(".connect-btn");
+                const statusBadge = hubCard.querySelector(".status-badge");
+
+                urlInput.value = `${BASE_API_URL}${hub.path.toLowerCase()}`;
+                let connection = null;
+                let connected = false;
+
+                function setStatus(status) {
+                  statusBadge.textContent = status;
+                  statusBadge.className =
+                    "status-badge ml-4 px-2 py-1 rounded text-xs font-semibold";
+                  if (status === "Connected") {
+                    statusBadge.classList.add("bg-green-700", "text-green-200");
+                  } else if (status === "Connecting") {
+                    statusBadge.classList.add(
+                      "bg-yellow-700",
+                      "text-yellow-200"
+                    );
+                  } else {
+                    statusBadge.classList.add("bg-gray-700", "text-gray-300");
+                  }
+                }
+
+                connectBtn.addEventListener("click", async () => {
+                  if (!connected) {
+                    setStatus("Connecting");
+                    connection = new signalR.HubConnectionBuilder()
+                      .withUrl(urlInput.value)
+                      .configureLogging(signalR.LogLevel.Information)
+                      .build();
+                    try {
+                      await connection.start();
+                      setStatus("Connected");
+                      connected = true;
+                      connectBtn.textContent = "Disconnect";
+                      connectBtn.classList.remove(
+                        "bg-blue-600",
+                        "hover:bg-blue-700"
+                      );
+                      connectBtn.classList.add(
+                        "bg-red-600",
+                        "hover:bg-red-700"
+                      );
+
+                      // If OnConnectAsync exists, invoke it after connecting
+                      const onConnectAsyncIdx = hub.methods.findIndex(
+                        (m) => m.methodName === "OnConnectAsync"
+                      );
+                      if (onConnectAsyncIdx !== -1) {
+                        const tryItForm = tryItForms[onConnectAsyncIdx];
+                        const resultDiv = tryItForm
+                          ? tryItForm.querySelector('div[id^="tryit-result-"]')
+                          : null;
+                        try {
+                          const res = await connection.invoke("OnConnectAsync");
+                          if (resultDiv) {
+                            resultDiv.textContent =
+                              "OnConnectAsync result: " + JSON.stringify(res);
+                            resultDiv.className = "mt-2 text-sm text-green-400";
+                            tryItForm.classList.remove("hidden");
+                          }
+                        } catch (err) {
+                          if (resultDiv) {
+                            resultDiv.textContent =
+                              "OnConnectAsync error: " + err;
+                            resultDiv.className = "mt-2 text-sm text-red-400";
+                            tryItForm.classList.remove("hidden");
+                          }
+                        }
+                      }
+
+                      // Enable Try it forms for this hub
+                      tryItBtns.forEach((btn, idx) => {
+                        btn.disabled = false;
+                        const m = hub.methods[idx];
+                        const tryItForm = tryItForms[idx];
+                        const resultDiv = tryItForm.querySelector(
+                          'div[id^="tryit-result-"]'
+                        );
+                        tryItForm.addEventListener(
+                          "submit",
+                          async (e) => {
+                            e.preventDefault();
+                            resultDiv.textContent = "";
+                            const paramValues = Array.from(
+                              tryItForm.querySelectorAll("input")
+                            ).map((input) => input.value);
+                            try {
+                              const res = await connection.invoke(
+                                m.methodName,
+                                ...paramValues
+                              );
+                              resultDiv.textContent =
+                                "Result: " + JSON.stringify(res);
+                              resultDiv.className =
+                                "mt-2 text-sm text-green-400";
+                            } catch (err) {
+                              resultDiv.textContent = "Error: " + err;
+                              resultDiv.className = "mt-2 text-sm text-red-400";
+                            }
+                          },
+                          { once: true }
+                        );
+                      });
+                    } catch (err) {
+                      setStatus("Disconnected");
+                      alert("Failed to connect: " + err);
+                    }
+                  } else {
+                    // Disconnect logic
+                    try {
+                      await connection.stop();
+                    } catch (err) {
+                      // ignore
+                    }
+                    setStatus("Disconnected");
+                    connected = false;
+                    connectBtn.textContent = "Connect";
+                    connectBtn.classList.remove(
+                      "bg-red-600",
+                      "hover:bg-red-700"
+                    );
+                    connectBtn.classList.add(
+                      "bg-blue-600",
+                      "hover:bg-blue-700"
+                    );
+                    tryItBtns.forEach((btn) => (btn.disabled = true));
+                  }
+                });
+              }
+            }
+          });
+
+          document.querySelectorAll("pre code").forEach((block) => {
+            hljs.highlightElement(block);
+          });
         })
-        .catch(error => {
-            console.error('Error loading hubs:', error);
-            document.getElementById('hubs').innerHTML = `
-                <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-6 text-center">
-                    <p class="text-red-400">Error loading hubs. Please try again later.</p>
-                </div>
-            `;
+        .catch((error) => {
+          console.error("Error loading hubs:", error);
+          document.getElementById("hubs").innerHTML = `
+                      <div class="bg-red-900/20 border border-red-900/50 rounded-lg p-6 text-center">
+                          <p class="text-red-400">Error loading hubs. Please try again later.</p>
+                      </div>
+                  `;
         });
     </script>
-</body>
-</html> 
+  </body>
+</html>

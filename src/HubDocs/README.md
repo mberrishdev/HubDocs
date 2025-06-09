@@ -35,13 +35,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
+//Configure and register hub
+app.MapHubAndRegister<YourHub>("/hub");
+
 // Configure HubDocs middleware
-app.AddHubDocs(typeof(YourHub).Assembly);
+app.AddHubDocs();
 
 // ... your other middleware configurations ...
 ```
 
-2. Access the HubDocs UI at `/hubdocs/index.html`
+2. Access the HubDocs UI at `/hubdocs/index.html` or `/hubdocs/` in your browser.
 
 ## Example
 
@@ -62,13 +65,12 @@ HubDocs will automatically discover and display:
 
 ## Configuration
 
-Scan specific assemblies for hubs:
+Register hubs:
 
 ```csharp
-app.AddHubDocs(
-    typeof(Hub1).Assembly,
-    typeof(Hub2).Assembly
-);
+app.MapHubAndRegister<ChatHub>("/hubs/chat");
+
+app.AddHubDocs();
 ```
 
 ## Links

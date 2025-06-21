@@ -14,9 +14,35 @@ HubDocs is a powerful tool for exploring and documenting SignalR hubs in your AS
 - 📦 **NuGet Package**: Easy to install and use in any ASP.NET Core project
 - 📡 **Live Client Logging**: Displays real-time messages sent from server to clients via strongly-typed interfaces
 
-![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot1.png)
-![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot2.png)
-![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot3.png)
+## 🎥 Live Demo
+
+![HubDocs Demo](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/demo.gif)
+
+> The HubDocs UI in action — exploring hubs, invoking methods, and seeing real-time client logs.
+
+---
+
+## 🖼️ Screenshots
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot1.png" alt="HubDocs Screenshot 1" width="800"/>
+  <br/><em>📌 SignalR Hub list</em>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot2.png" alt="HubDocs Screenshot 2" width="800"/>
+  <br/><em>🔍 Interactive method parameter inputs with \"Try it\" support</em>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot4.png" alt="HubDocs Screenshot 4" width="800"/>
+  <br/><em>📡 Live client method logging with JSON preview</em>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot3.png" alt="HubDocs Screenshot 3" width="800"/>
+  <br/><em>📭 No methods found — HubDocs will show helpful instructions if a hub is registered without a route.</em>
+</p>
 
 ## Installation
 

@@ -51,7 +51,8 @@ public static class SignalRDiscoveryExtensions
             await context.Response.WriteAsync(html);
         });
 
-        app.MapGet("/hubdocs", context => {
+        app.MapGet("/hubdocs", context =>
+        {
             context.Response.Redirect("/hubdocs/index.html", permanent: false);
             return Task.CompletedTask;
         }).ExcludeFromDescription();
@@ -69,11 +70,11 @@ public static class SignalRDiscoveryExtensions
                 var mapping = HubRouteRegistry.GetMappings()
                     .FirstOrDefault(m => m.HubType == hubType);
 
-                return new HubMetadata
+                var hubMetadata = new HubMetadata
                 {
                     HubName = hubType.Name,
                     HubFullName = hubType.FullName!,
-                    Path = mapping?.Path, 
+                    Path = mapping?.Path,
                     Methods = GetAllPublicHubMethods(hubType)
                         .GroupBy(GetMethodSignature)
                         .Select(g => g.First())
@@ -87,8 +88,26 @@ public static class SignalRDiscoveryExtensions
                         })
                         .ToList()
                 };
-            })
 
+                if (hubType.BaseType?.IsGenericType != true ||
+                    hubType.BaseType.GetGenericTypeDefinition() != typeof(Hub<>)) return hubMetadata;
+
+                var clientInterface = hubType.BaseType.GetGenericArguments()[0];
+
+                hubMetadata.ClientInterfaceName = clientInterface.FullName!;
+                hubMetadata.ClientMethods = clientInterface.GetMethods()
+                    .Select(m => new HubMethodMetadata
+                    {
+                        MethodName = m.Name,
+                        ParameterTypes = m.GetParameters()
+                            .Select(FormatParameter)
+                            .ToList(),
+                        ReturnType = FormatType(m.ReturnType)
+                    })
+                    .ToList();
+
+                return hubMetadata;
+            })
             .DistinctBy(x => x.HubName);
     }
 
@@ -99,7 +118,7 @@ public static class SignalRDiscoveryExtensions
 
         var declaredMethods = type
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => !m.IsSpecialName)
+            .Where(m => !m.IsSpecialName && m.Name != nameof(IDisposable.Dispose))
             .ToList();
 
         foreach (var m in declaredMethods)
@@ -112,7 +131,11 @@ public static class SignalRDiscoveryExtensions
         {
             var baseMethods = current
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(m => !m.IsSpecialName && !methodNamesFromDerived.Contains(m.Name));
+                .Where(m =>
+                    !m.IsSpecialName &&
+                    m.Name != nameof(IDisposable.Dispose) &&
+                    !methodNamesFromDerived.Contains(m.Name)
+                );
 
             allMethods.AddRange(baseMethods);
             current = current.BaseType;

@@ -4,10 +4,12 @@ A Swagger-like UI for exploring and documenting SignalR hubs in ASP.NET Core app
 
 ## Features
 
-- 🔍 Automatic discovery of SignalR hubs
+
+- 🔍 Automatic discovery of SignalR hubs and strongly-typed client interfaces
 - 📝 Method documentation with parameters and return types
 - 🎨 Beautiful Swagger-inspired dark theme UI
 - 🔌 Easy integration with minimal configuration
+- 📡 Live view of client method invocations from server (via strongly-typed interfaces)
 
 ## Screenshots
 
@@ -49,14 +51,27 @@ app.AddHubDocs();
 ## Example
 
 ```csharp
-public class ChatHub : Hub
+public interface IChatClient
+{
+    Task ReceiveMessage(string user, string message);
+    Task Connected(string connectionId);
+}
+
+public class ChatHub : Hub<IChatClient>
 {
     public async Task SendMessage(string user, string message)
     {
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        await Clients.All.ReceiveMessage(user, message);
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        await Clients.Caller.Connected(Context.ConnectionId);
     }
 }
 ```
+
+> **Note:** To fully leverage HubDocs, your hubs should implement `Hub<T>` with a strongly-typed client interface (`T`) that defines the client-callable methods. HubDocs will automatically extract and render both hub and client method metadata in the UI.
 
 HubDocs will automatically discover and display:
 - Hub name and full type name

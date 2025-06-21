@@ -12,6 +12,7 @@ HubDocs is a powerful tool for exploring and documenting SignalR hubs in your AS
 - 🎨 **Beautiful UI**: Swagger-inspired dark theme interface
 - 🔌 **Easy Integration**: Simple setup with just a few lines of code
 - 📦 **NuGet Package**: Easy to install and use in any ASP.NET Core project
+- 📡 **Live Client Logging**: Displays real-time messages sent from server to clients via strongly-typed interfaces
 
 ![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot1.png)
 ![Screenshot](https://raw.githubusercontent.com/mberrishdev/HubDocs/main/docs/screenshots/screenshot2.png)
@@ -35,32 +36,41 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
+//Configure and register hub
+app.MapHubAndRegister<YourHub>("/hub");
+
 // Configure HubDocs middleware
-app.AddHubDocs(typeof(ChatHub).Assembly, typeof(NotificationHub).Assembly);
+app.AddHubDocs();
 
 // ... your other middleware configurations ...
 ```
 
-2. Access the HubDocs UI at `/hubdocs/index.html`
+2. Access the HubDocs UI at `/hubdocs/index.html` or `/hubdocs/` in your browser.
 
 ## Example
 
-Here's a simple example of how HubDocs displays your SignalR hubs:
-
 ```csharp
-public class ChatHub : Hub
+public interface IChatClient
+{
+    Task ReceiveMessage(string user, string message);
+    Task Connected(string connectionId);
+}
+
+public class ChatHub : Hub<IChatClient>
 {
     public async Task SendMessage(string user, string message)
     {
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        await Clients.All.ReceiveMessage(user, message);
     }
 
-    public async Task JoinRoom(string roomName)
+    public override async Task OnConnectedAsync()
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
+        await Clients.Caller.Connected(Context.ConnectionId);
     }
 }
 ```
+
+> **Note:** To fully leverage HubDocs, your hubs should implement `Hub<T>` with a strongly-typed client interface (`T`) that defines the client-callable methods. HubDocs will automatically extract and render both hub and client method metadata in the UI.
 
 HubDocs will automatically discover this hub and display:
 - The hub name and full type name
@@ -72,11 +82,9 @@ HubDocs will automatically discover this hub and display:
 HubDocs is designed to work out of the box with minimal configuration. However, you can customize it by passing specific assemblies to scan:
 
 ```csharp
-// Scan specific assemblies
-app.ConfigureMiddleware(
-    typeof(Hub1).Assembly,
-    typeof(Hub2).Assembly
-);
+app.MapHubAndRegister<ChatHub>("/hubs/chat");
+
+app.AddHubDocs();
 ```
 
 ## Contributing
@@ -102,15 +110,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 If you find a bug or have a feature request, please [open an issue](https://github.com/mberrishdev/HubDocs/issues).
-
-## Roadmap
-
-- [ ] Add support for method descriptions via XML comments
-- [ ] Add support for parameter descriptions
-- [ ] Add support for hub descriptions
-- [ ] Add support for custom themes
-- [ ] Add support for hub grouping
-- [ ] Add support for hub versioning
 
 ## Authors
 

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace HubDocs;
 
-public static class SignalRDiscoveryExtensions
+public static class Extensions
 {
     public static void MapHubAndRegister<T>(this IEndpointRouteBuilder endpoints, string pattern)
         where T : Hub
@@ -33,7 +33,7 @@ public static class SignalRDiscoveryExtensions
 
         app.MapGet("/hubdocs/index.html", async context =>
         {
-            var assembly = typeof(SignalRDiscoveryExtensions).Assembly;
+            var assembly = typeof(Extensions).Assembly;
             var resourceName = assembly.GetManifestResourceNames()
                 .FirstOrDefault(n => n.EndsWith("hubdocs.html"));
 

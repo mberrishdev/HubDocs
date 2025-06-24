@@ -1,3 +1,10 @@
+> 🧭 HubDocs is a developer-friendly UI tool like Swagger, but for **SignalR hubs** — auto-discover your hubs, explore methods, invoke calls, and preview live client messages.
+
+[![GitHub stars](https://img.shields.io/github/stars/mberrishdev/HubDocs?style=social)](https://github.com/mberrishdev/HubDocs/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/mberrishdev/HubDocs?style=social)](https://github.com/mberrishdev/HubDocs/network)
+[![Open issues](https://img.shields.io/github/issues/mberrishdev/HubDocs)](https://github.com/mberrishdev/HubDocs/issues)
+
+
 # HubDocs
 
 [![NuGet](https://img.shields.io/nuget/v/HubDocs.svg)](https://www.nuget.org/packages/HubDocs)
@@ -44,6 +51,13 @@ HubDocs is a powerful tool for exploring and documenting SignalR hubs in your AS
   <br/><em>📭 No methods found — HubDocs will show helpful instructions if a hub is registered without a route.</em>
 </p>
 
+## 🔍 What You Get
+
+- A dashboard of all registered hubs
+- Parameter-aware “Try It” method testers
+- Strongly-typed client method preview with JSON payloads
+- Live server → client message tracking
+- 
 ## Installation
 
 ```bash
@@ -63,6 +77,7 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 //Configure and register hub
+// Required for HubDocs - registers your hub and makes it discoverable
 app.MapHubAndRegister<YourHub>("/hub");
 
 // Configure HubDocs middleware

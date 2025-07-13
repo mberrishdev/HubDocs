@@ -1,5 +1,7 @@
 > 🧭 HubDocs is a developer-friendly UI tool like Swagger, but for **SignalR hubs** — auto-discover your hubs, explore methods, invoke calls, and preview live client messages.
 
+https://hubdocs.mberrishdev.me/
+
 [![GitHub stars](https://img.shields.io/github/stars/mberrishdev/HubDocs?style=social)](https://github.com/mberrishdev/HubDocs/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/mberrishdev/HubDocs?style=social)](https://github.com/mberrishdev/HubDocs/network)
 [![Open issues](https://img.shields.io/github/issues/mberrishdev/HubDocs)](https://github.com/mberrishdev/HubDocs/issues)

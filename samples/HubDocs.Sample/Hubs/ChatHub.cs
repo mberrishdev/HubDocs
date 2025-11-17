@@ -10,6 +10,7 @@ public interface IChatClient
     Task UserLeft(string connectionId);
 }
 
+[HubDocs]
 public class ChatHub : Hub<IChatClient>
 {
     public async Task OnConnectedAsync(string user)

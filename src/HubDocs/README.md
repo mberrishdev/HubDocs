@@ -49,26 +49,36 @@ dotnet add package HubDocs
 
 ## Quick Start
 
-1. Add HubDocs to your ASP.NET Core application:
+1. Mark your SignalR hubs with the `[HubDocs]` attribute:
 
 ```csharp
 using HubDocs;
 
+[HubDocs]
+public class ChatHub : Hub<IChatClient>
+{
+    // ... your hub methods
+}
+```
+
+2. Register your hubs and add HubDocs in your ASP.NET Core application:
+
+```csharp
 var builder = WebApplication.CreateBuilder(args);
-// ... your other configurations ...
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-//Configure and register hub
-app.MapHubAndRegister<YourHub>("/hub");
+// Register your SignalR hubs
+app.MapHub<ChatHub>("/hubs/chat");
 
-// Configure HubDocs middleware
+// Add HubDocs - discovers hubs with [HubDocs] attribute
 app.AddHubDocs();
 
-// ... your other middleware configurations ...
+app.Run();
 ```
 
-2. Access the HubDocs UI at `/hubdocs/index.html` or `/hubdocs/` in your browser.
+3. Access the HubDocs UI at `/hubdocs/index.html` or `/hubdocs/` in your browser.
 
 ## Example
 
@@ -79,6 +89,7 @@ public interface IChatClient
     Task Connected(string connectionId);
 }
 
+[HubDocs]  // Mark for documentation
 public class ChatHub : Hub<IChatClient>
 {
     public async Task SendMessage(string user, string message)
@@ -97,18 +108,34 @@ public class ChatHub : Hub<IChatClient>
 
 HubDocs will automatically discover and display:
 - Hub name and full type name
+- Route where the hub is registered
 - All public methods with parameters and return types
+- Client methods from strongly-typed interface
 - Interactive UI for exploring the hub
 
 ## Configuration
 
-Register hubs:
+### Basic Configuration
 
 ```csharp
-app.MapHubAndRegister<ChatHub>("/hubs/chat");
+// Register hubs with MapHub
+app.MapHub<ChatHub>("/hubs/chat");
 
+// Add HubDocs
 app.AddHubDocs();
 ```
+
+### Custom Assemblies
+
+Scan specific assemblies for hubs:
+
+```csharp
+app.AddHubDocs(typeof(ExternalHub).Assembly);
+```
+
+### Opt-in with Attribute
+
+Only hubs marked with `[HubDocs]` attribute are documented. This provides control over which hubs appear in the UI.
 
 ## Links
 

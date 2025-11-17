@@ -2,11 +2,11 @@ namespace HubDocs;
 
 public class HubMetadata
 {
-    public string HubName { get; set; } = null!;
-    public string HubFullName { get; set; } = null!;
-    public string? Path { get; set; } = null!;
-    public List<HubMethodMetadata> Methods { get; set; } = new();
-    
+    public string HubName { get; init; } = null!;
+    public string HubFullName { get; init; } = null!;
+    public string? Path { get; init; } = null!;
+    public List<HubMethodMetadata> Methods { get; init; } = [];
+
     public string? ClientInterfaceName { get; set; }
     public List<HubMethodMetadata>? ClientMethods { get; set; }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace HubDocs.Sample.Hubs;
 
+[HubDocs]
 public class NotificationHub : Hub
 {
     public async Task SendNotification(string title, string message, string type)

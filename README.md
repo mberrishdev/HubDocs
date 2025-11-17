@@ -74,21 +74,39 @@ dotnet add package HubDocs
 using HubDocs;
 
 var builder = WebApplication.CreateBuilder(args);
-// ... your other configurations ...
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-//Configure and register hub
-// Required for HubDocs - registers your hub and makes it discoverable
-app.MapHubAndRegister<YourHub>("/hub");
+// Register your SignalR hubs with MapHub
+app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
-// Configure HubDocs middleware
+// Add HubDocs - discovers hubs marked with [HubDocs] attribute
 app.AddHubDocs();
 
-// ... your other middleware configurations ...
+app.Run();
 ```
 
-2. Access the HubDocs UI at `/hubdocs/index.html` or `/hubdocs/` in your browser.
+2. Mark your hubs with the `[HubDocs]` attribute:
+
+```csharp
+[HubDocs]
+public class ChatHub : Hub<IChatClient>
+{
+    // ... your hub methods
+}
+
+[HubDocs]
+public class NotificationHub : Hub
+{
+    // ... your hub methods
+}
+```
+
+3. Access the HubDocs UI at `/hubdocs/index.html` or `/hubdocs/` in your browser.
 
 ## Example
 
@@ -99,6 +117,7 @@ public interface IChatClient
     Task Connected(string connectionId);
 }
 
+[HubDocs]  // Mark hub for documentation
 public class ChatHub : Hub<IChatClient>
 {
     public async Task SendMessage(string user, string message)
@@ -115,20 +134,36 @@ public class ChatHub : Hub<IChatClient>
 
 > **Note:** To fully leverage HubDocs, your hubs should implement `Hub<T>` with a strongly-typed client interface (`T`) that defines the client-callable methods. HubDocs will automatically extract and render both hub and client method metadata in the UI.
 
-HubDocs will automatically discover this hub and display:
+HubDocs will automatically discover marked hubs and display:
 - The hub name and full type name
+- The route where the hub is registered
 - All public methods with their parameters and return types
+- Client methods from the strongly-typed interface
 - A beautiful, interactive UI to explore the hub
 
 ## Configuration
 
-HubDocs is designed to work out of the box with minimal configuration. However, you can customize it by passing specific assemblies to scan:
+### Basic Usage
 
 ```csharp
-app.MapHubAndRegister<ChatHub>("/hubs/chat");
+// Register your hubs
+app.MapHub<ChatHub>("/hubs/chat");
 
+// Add HubDocs
 app.AddHubDocs();
 ```
+
+### Scanning Specific Assemblies
+
+If your hubs are in external assemblies, you can specify them:
+
+```csharp
+app.AddHubDocs(typeof(ExternalHub).Assembly);
+```
+
+### Opt-in Documentation
+
+Only hubs marked with `[HubDocs]` attribute will appear in the documentation UI. This gives you control over which hubs are publicly documented.
 
 ## Contributing
 

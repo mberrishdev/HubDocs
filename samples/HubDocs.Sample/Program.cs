@@ -25,11 +25,11 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.UseStaticFiles();
 
-// Map SignalR hubs
-app.MapHubAndRegister<ChatHub>("/hubs/chat");
+// Register SignalR hubs
+app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<NotificationHub>("/hubs/notifications");
 
-// Configure HubDocs middleware
+// Configure HubDocs - discovers hubs with [HubDocs] attribute from registered endpoints
 app.AddHubDocs();
 
 app.MapControllers();

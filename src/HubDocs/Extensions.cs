@@ -4,29 +4,18 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
-
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HubDocs;
 
 public static class Extensions
 {
-    public static void MapHubAndRegister<T>(this IEndpointRouteBuilder endpoints, string pattern)
-        where T : Hub
+    public static WebApplication AddHubDocs(this WebApplication app, params Assembly[] additionalAssemblies)
     {
-        endpoints.MapHub<T>(pattern);
-        HubRouteRegistry.AddMapping<T>(pattern);
-    }
-
-    public static WebApplication AddHubDocs(this WebApplication app)
-    {
-        var assemblies = HubRouteRegistry.GetMappings()
-            .Select(m => m.HubType.Assembly)
-            .Distinct()
-            .ToArray();
-
         app.MapGet("/hubdocs/hubdocs.json", () =>
             {
-                var metadata = assemblies.DiscoverSignalRHubs();
+                var hubRoutes = GetHubRoutesFromEndpoints(app);
+                var metadata = DiscoverSignalRHubs(hubRoutes, additionalAssemblies);
                 return Results.Ok(metadata);
             })
             .ExcludeFromDescription();
@@ -60,21 +49,69 @@ public static class Extensions
         return app;
     }
 
-    private static IEnumerable<HubMetadata> DiscoverSignalRHubs(this IEnumerable<Assembly> assemblies)
+    private static Dictionary<Type, string> GetHubRoutesFromEndpoints(WebApplication app)
     {
-        return assemblies
-            .SelectMany(a => a.GetTypes())
+        var hubRoutes = new Dictionary<Type, string>();
+        var dataSource = app.Services.GetRequiredService<EndpointDataSource>();
+
+        foreach (var endpoint in dataSource.Endpoints)
+        {
+            if (endpoint is not RouteEndpoint routeEndpoint) continue;
+            // Look for SignalR hub metadata
+            foreach (var metadata in routeEndpoint.Metadata)
+            {
+                var metadataType = metadata.GetType();
+                if (metadataType.FullName == "Microsoft.AspNetCore.SignalR.HubMetadata")
+                {
+                    var hubTypeProperty = metadataType.GetProperty("HubType");
+                    if (hubTypeProperty?.GetValue(metadata) is Type hubType)
+                    {
+                        var pattern = routeEndpoint.RoutePattern.RawText;
+                        if (!string.IsNullOrEmpty(pattern))
+                        {
+                            hubRoutes[hubType] = pattern;
+                        }
+                    }
+                }
+            }
+        }
+
+        return hubRoutes;
+    }
+
+    private static IEnumerable<HubMetadata> DiscoverSignalRHubs(Dictionary<Type, string> hubRoutes,
+        params Assembly[] assemblies)
+    {
+        var assembliesToScan = assemblies.Length > 0
+            ? assemblies
+            : AppDomain.CurrentDomain.GetAssemblies();
+
+        return assembliesToScan
+            .SelectMany(a =>
+            {
+                try
+                {
+                    return a.GetTypes();
+                }
+                catch (ReflectionTypeLoadException)
+                {
+                    return Array.Empty<Type>();
+                }
+            })
             .Where(t => typeof(Hub).IsAssignableFrom(t) && !t.IsAbstract)
             .Select(hubType =>
             {
-                var mapping = HubRouteRegistry.GetMappings()
-                    .FirstOrDefault(m => m.HubType == hubType);
+                var attribute = hubType.GetCustomAttribute<HubDocsAttribute>();
+
+                // Only include hubs with [HubDocs] attribute that are registered
+                if (attribute == null || !hubRoutes.ContainsKey(hubType))
+                    return null;
 
                 var hubMetadata = new HubMetadata
                 {
                     HubName = hubType.Name,
                     HubFullName = hubType.FullName!,
-                    Path = mapping?.Path,
+                    Path = hubRoutes[hubType],
                     Methods = GetAllPublicHubMethods(hubType)
                         .GroupBy(GetMethodSignature)
                         .Select(g => g.First())
@@ -108,6 +145,7 @@ public static class Extensions
 
                 return hubMetadata;
             })
+            .Where(h => h.Path != null)
             .DistinctBy(x => x.HubName);
     }
 

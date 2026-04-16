@@ -145,6 +145,7 @@ public static class Extensions
 
                 return hubMetadata;
             })
+            .OfType<HubMetadata>()
             .Where(h => h.Path != null)
             .DistinctBy(x => x.HubName);
     }

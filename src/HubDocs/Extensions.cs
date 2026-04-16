@@ -95,7 +95,7 @@ public static class Extensions
                 }
                 catch (ReflectionTypeLoadException)
                 {
-                    return Array.Empty<Type>();
+                    return [];
                 }
             })
             .Where(t => typeof(Hub).IsAssignableFrom(t) && !t.IsAbstract)
@@ -112,18 +112,15 @@ public static class Extensions
                     HubName = hubType.Name,
                     HubFullName = hubType.FullName!,
                     Path = hubRoutes[hubType],
-                    Methods = GetAllPublicHubMethods(hubType)
+                    Methods = [.. GetAllPublicHubMethods(hubType)
                         .GroupBy(GetMethodSignature)
                         .Select(g => g.First())
                         .Select(m => new HubMethodMetadata
                         {
                             MethodName = m.Name,
-                            ParameterTypes = m.GetParameters()
-                                .Select(FormatParameter)
-                                .ToList(),
+                            ParameterTypes = [.. m.GetParameters().Select(FormatParameter)],
                             ReturnType = FormatType(m.ReturnType)
-                        })
-                        .ToList()
+                        })]
                 };
 
                 if (hubType.BaseType?.IsGenericType != true ||
@@ -132,19 +129,17 @@ public static class Extensions
                 var clientInterface = hubType.BaseType.GetGenericArguments()[0];
 
                 hubMetadata.ClientInterfaceName = clientInterface.FullName!;
-                hubMetadata.ClientMethods = clientInterface.GetMethods()
+                hubMetadata.ClientMethods = [.. clientInterface.GetMethods()
                     .Select(m => new HubMethodMetadata
                     {
                         MethodName = m.Name,
-                        ParameterTypes = m.GetParameters()
-                            .Select(FormatParameter)
-                            .ToList(),
+                        ParameterTypes = [.. m.GetParameters().Select(FormatParameter)],
                         ReturnType = FormatType(m.ReturnType)
-                    })
-                    .ToList();
+                    })];
 
                 return hubMetadata;
             })
+            .OfType<HubMetadata>()
             .Where(h => h.Path != null)
             .DistinctBy(x => x.HubName);
     }
@@ -230,8 +225,8 @@ public static class Extensions
             if (arg.ArgumentType == typeof(byte) && (byte)arg.Value! == 2)
                 return true;
 
-            if (arg.ArgumentType == typeof(CustomAttributeTypedArgument[]) &&
-                ((ReadOnlyCollection<CustomAttributeTypedArgument>)arg.Value).FirstOrDefault().Value is byte and 2)
+            if (arg.Value is ReadOnlyCollection<CustomAttributeTypedArgument> args &&
+                args.FirstOrDefault().Value is byte and 2)
                 return true;
         }
 

@@ -6,7 +6,7 @@
 
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>HubDocs</PackageId>
-        <Version>0.0.6</Version>
+        <Version>0.0.7</Version>
         <Company>BerrishDev</Company>
         <Product>HubDocs</Product>
         <Description>Swagger-like documentation UI for SignalR Hubs</Description>

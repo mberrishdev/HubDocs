@@ -32,9 +32,30 @@ jobs:
       - name: Run unit tests
         run: dotnet test tests/HubDocs.UnitTests/HubDocs.UnitTests.csproj -c Release --no-build --collect:"XPlat Code Coverage"
 
+      - name: Install ReportGenerator
+        if: always()
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Generate HTML coverage report
+        if: always()
+        run: |
+          reportgenerator \
+            -reports:"tests/HubDocs.UnitTests/TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"coverage-report" \
+            -reporttypes:"Html;MarkdownSummary"
+
       - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-coverage-cobertura
           path: tests/HubDocs.UnitTests/TestResults/**/coverage.cobertura.xml
+
+      - name: Upload HTML coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-html
+          path: coverage-report

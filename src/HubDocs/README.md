@@ -133,6 +133,38 @@ Scan specific assemblies for hubs:
 app.AddHubDocs(typeof(ExternalHub).Assembly);
 ```
 
+### Document Metadata Options
+
+You can configure project metadata (Swagger-like `info`) for HubDocs JSON and UI:
+
+```csharp
+app.AddHubDocs(options =>
+{
+  options.Title = "My SignalR API";
+  options.Version = "1.0.0";
+  options.Description = "Realtime messaging API docs.";
+  options.ProjectUrl = "https://example.com/project";
+  options.TermsOfService = "https://example.com/terms";
+
+  options.Contact.Name = "API Support";
+  options.Contact.Email = "support@example.com";
+  options.Contact.Url = "https://example.com/support";
+
+  options.License.Name = "MIT";
+  options.License.Url = "https://example.com/license";
+});
+```
+
+You can also combine metadata options with explicit assemblies:
+
+```csharp
+app.AddHubDocs(options =>
+{
+  options.Title = "External Hubs API";
+  options.Version = "2.0.0";
+}, typeof(ExternalHub).Assembly);
+```
+
 ### Opt-in with Attribute
 
 Only hubs marked with `[HubDocs]` attribute are documented. This provides control over which hubs appear in the UI.

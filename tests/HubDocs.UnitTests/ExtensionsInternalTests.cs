@@ -92,6 +92,53 @@ public class ExtensionsInternalTests
     }
 
     [Fact]
+    public void BuildHubDocsDocument_WhenHubsAreProvided_ShouldProduceStructuredProtocolDocument()
+    {
+        // Arrange
+        var discoverMethod = typeof(Extensions).GetMethod(
+            "DiscoverSignalRHubs",
+            BindingFlags.NonPublic | BindingFlags.Static);
+
+        var hubDocsMethod = typeof(Extensions).GetMethod(
+            "BuildHubDocsDocument",
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            types: new[] { typeof(IReadOnlyList<HubMetadata>) },
+            modifiers: null);
+
+        Assert.NotNull(discoverMethod);
+        Assert.NotNull(hubDocsMethod);
+
+        var routes = new Dictionary<Type, string>
+        {
+            { typeof(TypedHub), "/hubs/typed" }
+        };
+
+        var hubs = Assert.IsAssignableFrom<IEnumerable<HubMetadata>>(
+            discoverMethod!.Invoke(null, new object[] { routes, new[] { typeof(TypedHub).Assembly } }))
+            .ToList();
+
+        // Act
+        var document = Assert.IsAssignableFrom<Dictionary<string, object?>>(
+            hubDocsMethod!.Invoke(null, new object[] { hubs }));
+
+        // Assert
+        var hubdocs = Assert.IsAssignableFrom<Dictionary<string, object?>>(document["hubdocs"]);
+        Assert.Equal("hubdocs-1.0", Assert.IsType<string>(hubdocs["format"]));
+        Assert.Equal("1.0.0", Assert.IsType<string>(hubdocs["version"]));
+
+        var exportedHubs = Assert.IsAssignableFrom<IEnumerable<HubMetadata>>(document["hubs"]);
+        Assert.NotEmpty(exportedHubs);
+
+        var channels = Assert.IsAssignableFrom<Dictionary<string, object?>>(document["channels"]);
+        Assert.Contains("/hubs/typed", channels.Keys);
+
+        var components = Assert.IsAssignableFrom<Dictionary<string, object?>>(document["components"]);
+        Assert.True(components.ContainsKey("messages"));
+        Assert.True(components.ContainsKey("schemas"));
+    }
+
+    [Fact]
     public void GetMethodSignature_WhenMethodHasParameters_ShouldIncludeParameterTypeNames()
     {
         // Arrange

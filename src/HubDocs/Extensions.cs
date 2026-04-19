@@ -13,11 +13,20 @@ public static class Extensions
 
     public static WebApplication AddHubDocs(this WebApplication app, params Assembly[] additionalAssemblies)
     {
+        return AddHubDocs(app, _ => { }, additionalAssemblies);
+    }
+
+    public static WebApplication AddHubDocs(this WebApplication app, Action<HubDocsDocumentOptions> configureDocument, params Assembly[] additionalAssemblies)
+    {
+        var documentOptions = new HubDocsDocumentOptions();
+        configureDocument(documentOptions);
+
         app.MapGet("/hubdocs/hubdocs.json", () =>
             {
                 var hubRoutes = GetHubRoutesFromEndpoints(app);
-                var metadata = DiscoverSignalRHubs(hubRoutes, additionalAssemblies);
-                return Results.Ok(metadata);
+                var metadata = DiscoverSignalRHubs(hubRoutes, additionalAssemblies).ToList();
+                var hubDocsDocument = BuildHubDocsDocument(metadata, documentOptions);
+                return Results.Ok(hubDocsDocument);
             })
             .ExcludeFromDescription();
 
@@ -437,6 +446,279 @@ public static class Extensions
 
         var unwrapped = NormalizeType(returnType);
         return CreateExampleLiteral(unwrapped, false);
+    }
+
+    private static Dictionary<string, object?> BuildHubDocsDocument(IReadOnlyList<HubMetadata> hubs)
+    {
+        return BuildHubDocsDocument(hubs, new HubDocsDocumentOptions());
+    }
+
+    private static Dictionary<string, object?> BuildHubDocsDocument(IReadOnlyList<HubMetadata> hubs, HubDocsDocumentOptions options)
+    {
+        var channels = new Dictionary<string, object?>();
+        var messages = new Dictionary<string, object?>();
+        var schemas = new Dictionary<string, object?>();
+
+        foreach (var hub in hubs)
+        {
+            if (string.IsNullOrWhiteSpace(hub.Path))
+                continue;
+
+            foreach (var schema in hub.Schemas)
+            {
+                if (schemas.ContainsKey(schema.Name))
+                    continue;
+
+                schemas[schema.Name] = ConvertHubSchemaToProtocolSchema(schema);
+            }
+
+            var publishMessageRefs = new List<object>();
+            foreach (var method in hub.Methods)
+            {
+                var messageName = $"{hub.HubName}.{method.MethodName}.Request";
+                messages[messageName] = BuildMethodMessage(messageName, method, schemas.Keys);
+                publishMessageRefs.Add(new Dictionary<string, object?>
+                {
+                    ["$ref"] = $"#/components/messages/{messageName}"
+                });
+            }
+
+            var subscribeMessageRefs = new List<object>();
+            foreach (var method in hub.ClientMethods ?? [])
+            {
+                var messageName = $"{hub.HubName}.{method.MethodName}.Event";
+                messages[messageName] = BuildMethodMessage(messageName, method, schemas.Keys);
+                subscribeMessageRefs.Add(new Dictionary<string, object?>
+                {
+                    ["$ref"] = $"#/components/messages/{messageName}"
+                });
+            }
+
+            channels[hub.Path] = new Dictionary<string, object?>
+            {
+                ["publish"] = new Dictionary<string, object?>
+                {
+                    ["operationId"] = $"{hub.HubName}.publish",
+                    ["summary"] = $"Client-to-server methods for {hub.HubName}",
+                    ["message"] = new Dictionary<string, object?>
+                    {
+                        ["oneOf"] = publishMessageRefs
+                    }
+                },
+                ["subscribe"] = new Dictionary<string, object?>
+                {
+                    ["operationId"] = $"{hub.HubName}.subscribe",
+                    ["summary"] = $"Server-to-client methods for {hub.HubName}",
+                    ["message"] = new Dictionary<string, object?>
+                    {
+                        ["oneOf"] = subscribeMessageRefs
+                    }
+                }
+            };
+        }
+
+        return new Dictionary<string, object?>
+        {
+            ["hubdocs"] = new Dictionary<string, object?>
+            {
+                ["format"] = "hubdocs-1.0",
+                ["version"] = options.Version,
+                ["title"] = options.Title,
+                ["description"] = options.Description,
+                ["termsOfService"] = options.TermsOfService,
+                ["projectUrl"] = options.ProjectUrl,
+                ["contact"] = new Dictionary<string, object?>
+                {
+                    ["name"] = options.Contact.Name,
+                    ["email"] = options.Contact.Email,
+                    ["url"] = options.Contact.Url
+                },
+                ["license"] = new Dictionary<string, object?>
+                {
+                    ["name"] = options.License.Name,
+                    ["url"] = options.License.Url
+                },
+                ["generatedAtUtc"] = DateTime.UtcNow.ToString("O")
+            },
+            ["hubs"] = hubs,
+            ["channels"] = channels,
+            ["components"] = new Dictionary<string, object?>
+            {
+                ["messages"] = messages,
+                ["schemas"] = schemas
+            }
+        };
+    }
+
+    private static Dictionary<string, object?> BuildMethodMessage(string messageName, HubMethodMetadata method, IEnumerable<string> knownSchemas)
+    {
+        var argumentProperties = new Dictionary<string, object?>();
+
+        foreach (var parameter in method.Parameters)
+        {
+            argumentProperties[parameter.Name] = BuildJsonSchemaForType(parameter.Type, knownSchemas, parameter.Example, parameter.IsNullable);
+        }
+
+        var payloadProperties = new Dictionary<string, object?>
+        {
+            ["method"] = new Dictionary<string, object?>
+            {
+                ["type"] = "string",
+                ["example"] = method.MethodName
+            },
+            ["arguments"] = new Dictionary<string, object?>
+            {
+                ["type"] = "object",
+                ["properties"] = argumentProperties
+            },
+            ["returns"] = BuildJsonSchemaForType(method.ReturnType, knownSchemas, method.ReturnExample, false)
+        };
+
+        return new Dictionary<string, object?>
+        {
+            ["name"] = messageName,
+            ["title"] = method.Signature,
+            ["payload"] = new Dictionary<string, object?>
+            {
+                ["type"] = "object",
+                ["properties"] = payloadProperties,
+                ["required"] = new[] { "method", "arguments" }
+            },
+            ["examples"] = new[]
+            {
+                new Dictionary<string, object?>
+                {
+                    ["name"] = $"{method.MethodName}Example",
+                    ["summary"] = method.Signature,
+                    ["payload"] = new Dictionary<string, object?>
+                    {
+                        ["method"] = method.MethodName,
+                        ["arguments"] = method.Parameters.ToDictionary(p => p.Name, p => (object?)p.Example),
+                        ["returns"] = method.ReturnExample
+                    }
+                }
+            }
+        };
+    }
+
+    private static Dictionary<string, object?> BuildJsonSchemaForType(string csharpType, IEnumerable<string> knownSchemas, string? example, bool nullable)
+    {
+        var cleaned = csharpType.Trim();
+        if (cleaned.EndsWith("?", StringComparison.Ordinal))
+        {
+            cleaned = cleaned[..^1];
+            nullable = true;
+        }
+
+        if (cleaned.EndsWith("[]", StringComparison.Ordinal))
+        {
+            var itemType = cleaned[..^2];
+            var itemSchema = BuildJsonSchemaForType(itemType, knownSchemas, null, false);
+            var arraySchema = new Dictionary<string, object?>
+            {
+                ["type"] = "array",
+                ["items"] = itemSchema
+            };
+
+            if (example != null)
+                arraySchema["example"] = example;
+
+            if (nullable)
+                arraySchema["nullable"] = true;
+
+            return arraySchema;
+        }
+
+        if (cleaned.StartsWith("List<", StringComparison.Ordinal) && cleaned.EndsWith(">", StringComparison.Ordinal))
+        {
+            var inner = cleaned[5..^1];
+            var itemSchema = BuildJsonSchemaForType(inner, knownSchemas, null, false);
+            var listSchema = new Dictionary<string, object?>
+            {
+                ["type"] = "array",
+                ["items"] = itemSchema
+            };
+
+            if (example != null)
+                listSchema["example"] = example;
+
+            if (nullable)
+                listSchema["nullable"] = true;
+
+            return listSchema;
+        }
+
+        var schemaName = cleaned.Contains('<')
+            ? cleaned[..cleaned.IndexOf('<')]
+            : cleaned;
+
+        if (knownSchemas.Contains(schemaName, StringComparer.Ordinal))
+        {
+            var refSchema = new Dictionary<string, object?>
+            {
+                ["$ref"] = $"#/components/schemas/{schemaName}"
+            };
+
+            if (nullable)
+                refSchema["nullable"] = true;
+
+            return refSchema;
+        }
+
+        var primitive = MapPrimitiveJsonSchema(cleaned);
+        if (example != null)
+            primitive["example"] = example;
+        if (nullable)
+            primitive["nullable"] = true;
+        return primitive;
+    }
+
+    private static Dictionary<string, object?> MapPrimitiveJsonSchema(string csharpType)
+    {
+        return csharpType switch
+        {
+            "bool" => new Dictionary<string, object?> { ["type"] = "boolean" },
+            "byte" or "sbyte" or "short" or "ushort" or "int" or "uint" or "long" or "ulong" =>
+                new Dictionary<string, object?> { ["type"] = "integer", ["format"] = "int64" },
+            "float" => new Dictionary<string, object?> { ["type"] = "number", ["format"] = "float" },
+            "double" or "decimal" => new Dictionary<string, object?> { ["type"] = "number", ["format"] = "double" },
+            "Guid" => new Dictionary<string, object?> { ["type"] = "string", ["format"] = "uuid" },
+            "DateTime" or "DateTimeOffset" => new Dictionary<string, object?> { ["type"] = "string", ["format"] = "date-time" },
+            "TimeSpan" => new Dictionary<string, object?> { ["type"] = "string" },
+            "Task" or "void" => new Dictionary<string, object?> { ["type"] = "null" },
+            _ => new Dictionary<string, object?> { ["type"] = "string" }
+        };
+    }
+
+    private static Dictionary<string, object?> ConvertHubSchemaToProtocolSchema(HubTypeSchemaMetadata schema)
+    {
+        if (schema.Kind == "enum")
+        {
+            var enumNames = (schema.EnumValues ?? [])
+                .Select(v => v.Split('=')[0].Trim())
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .ToList();
+
+            return new Dictionary<string, object?>
+            {
+                ["type"] = "string",
+                ["enum"] = enumNames,
+                ["example"] = enumNames.FirstOrDefault()
+            };
+        }
+
+        var properties = new Dictionary<string, object?>();
+        foreach (var property in schema.Properties ?? [])
+        {
+            properties[property.Name] = BuildJsonSchemaForType(property.Type, [], property.Example, property.IsNullable);
+        }
+
+        return new Dictionary<string, object?>
+        {
+            ["type"] = "object",
+            ["properties"] = properties,
+            ["example"] = schema.Example
+        };
     }
 
     private static string CreateExampleLiteral(Type type, bool nullable)

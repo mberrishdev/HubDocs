@@ -189,9 +189,17 @@
 
                 const methods = hub.methods
                     .map((m, methodIdx) => {
-                        const params = m.parameterTypes
-                            .map((p, i) => `<span class=\"text-blue-400\">${p}</span>`)
+                        const typedParameters = Array.isArray(m.parameters)
+                            ? m.parameters
+                            : [];
+
+                        const params = (typedParameters.length > 0
+                                ? typedParameters.map((p) => `${p.type} ${p.name}`)
+                                : m.parameterTypes)
+                            .map((p) => `<span class=\"text-blue-400\">${p}</span>`)
                             .join(", ");
+
+                        const signature = m.signature || `${m.returnType} ${m.methodName}(${params})`;
 
                         // If no path, do not show Try it button
                         const tryItButton = hasPath
@@ -200,10 +208,10 @@
 
                         const tryItFormId = `tryit-form-${hub.hubName}-${m.methodName}-${methodIdx}`;
                         const resultId = `tryit-result-${hub.hubName}-${m.methodName}-${methodIdx}`;
-                        const paramInputs = m.parameterTypes
+                        const paramInputs = (typedParameters.length > 0 ? typedParameters : m.parameterTypes.map((p, idx) => ({ type: p, name: `param${idx}`, example: "" })))
                             .map(
                                 (p, i) =>
-                                    `<input type=\"text\" name=\"param${i}\" placeholder=\"${p}\" class=\"bg-[#181c20] border border-[#3d3d3d] rounded px-2 py-1 text-gray-200 w-full mb-2\" />`
+                                    `<input type=\"text\" name=\"param${i}\" value=\"${p.example ? String(p.example).replace(/\"/g, "") : ""}\" placeholder=\"${p.type} ${p.name}\" class=\"bg-[#181c20] border border-[#3d3d3d] rounded px-2 py-1 text-gray-200 w-full mb-2\" />`
                             )
                             .join("");
 
@@ -220,6 +228,10 @@
                                 <h3 class=\"text-lg font-semibold text-white\">${m.methodName}</h3>
                               </div>
                               <div class=\"mt-2 text-sm text-gray-400\">
+                                                                <span class=\"text-gray-500\">Signature:</span>
+                                                                <span class=\"font-mono text-green-300\">${signature}</span>
+                                                            </div>
+                                                            <div class=\"mt-2 text-sm text-gray-400\">
                                 <span class=\"text-gray-500\">Parameters:</span>
                                 <span class=\"font-mono\">(${params})</span>
                               </div>
@@ -227,6 +239,8 @@
                                 <span class=\"text-gray-500\">Returns:</span>
                                 <span class=\"font-mono text-blue-400\">${m.returnType}</span>
                               </div>
+                                                            ${m.exampleInvocation ? `<div class=\"mt-2 text-sm text-gray-400\"><span class=\"text-gray-500\">Example Call:</span><pre class=\"mt-1 bg-[#1d1d1d] text-green-300 p-2 rounded font-mono text-xs overflow-x-auto\">${m.exampleInvocation}</pre></div>` : ""}
+                                                            ${m.returnExample ? `<div class=\"mt-2 text-sm text-gray-400\"><span class=\"text-gray-500\">Example Result:</span><pre class=\"mt-1 bg-[#1d1d1d] text-blue-300 p-2 rounded font-mono text-xs overflow-x-auto\">${m.returnExample}</pre></div>` : ""}
                             </div>
                             ${tryItButton}
                           </div>
@@ -238,9 +252,15 @@
 
                 const clientMethods = (hub.clientMethods || [])
                     .map((m) => {
-                        const params = m.parameterTypes
-                            .map((p) => `<span class="text-blue-400">${p}</span>`)
+                                                const typedParameters = Array.isArray(m.parameters)
+                                                        ? m.parameters
+                                                        : [];
+                                                const params = (typedParameters.length > 0
+                                                                ? typedParameters.map((p) => `${p.type} ${p.name}`)
+                                                                : m.parameterTypes)
+                                                        .map((p) => `<span class="text-blue-400">${p}</span>`)
                             .join(", ");
+                                                const signature = m.signature || `${m.returnType} ${m.methodName}(${params})`;
 
                         return `
                               <div class="border-t border-[#3d3d3d] p-4 hover:bg-[#2e2e2e] transition-colors" id="client-method-${m.methodName}">
@@ -248,6 +268,10 @@
                                   <div class="flex items-center gap-2">
                                     <h3 class="text-lg font-semibold text-white">${m.methodName}</h3>
                                   </div>
+                                                                    <div class="mt-2 text-sm text-gray-400">
+                                                                        <span class="text-gray-500">Signature:</span>
+                                                                        <span class="font-mono text-green-300">${signature}</span>
+                                                                    </div>
                                   <div class="mt-2 text-sm text-gray-400">
                                     <span class="text-gray-500">Parameters:</span>
                                     <span class="font-mono">(${params})</span>
@@ -256,11 +280,28 @@
                                     <span class="text-gray-500">Returns:</span>
                                     <span class="font-mono text-blue-400">${m.returnType}</span>
                                   </div>
+                                                                    ${m.exampleInvocation ? `<div class="mt-2 text-sm text-gray-400"><span class="text-gray-500">Example Call:</span><pre class="mt-1 bg-[#1d1d1d] text-green-300 p-2 rounded font-mono text-xs overflow-x-auto">${m.exampleInvocation}</pre></div>` : ""}
                                 </div>
                               </div>
                             `;
                     })
                     .join("");
+
+                                const schemas = (hub.schemas || [])
+                                        .map((s) => {
+                                                const enumBlock = s.kind === "enum" && Array.isArray(s.enumValues)
+                                                        ? `<div class="mt-2"><div class="text-xs text-gray-500 mb-1">Enum Values</div><pre class="bg-[#1d1d1d] text-purple-300 p-2 rounded font-mono text-xs overflow-x-auto">${s.enumValues.join("\n")}</pre></div>`
+                                                        : "";
+
+                                                const propertyBlock = s.kind === "object" && Array.isArray(s.properties)
+                                                        ? `<div class="mt-2"><div class="text-xs text-gray-500 mb-1">Properties</div>${s.properties
+                                                                .map((p) => `<div class="text-xs mb-1"><span class="text-blue-300 font-mono">${p.type}</span> <span class="text-gray-200">${p.name}</span>${p.isNullable ? ' <span class="text-yellow-300">(nullable)</span>' : ""}</div>`)
+                                                                .join("")}</div>`
+                                                        : "";
+
+                                                return `<div class="border border-[#3d3d3d] bg-[#2b2b2b] rounded p-3"><div class="flex items-center justify-between"><div class="text-sm text-white font-semibold">${s.name}</div><span class="text-[10px] uppercase tracking-wide text-gray-400">${s.kind}</span></div><div class="text-xs text-gray-400 mt-1 font-mono">${s.fullName}</div>${enumBlock}${propertyBlock}<div class="mt-2"><div class="text-xs text-gray-500 mb-1">Example</div><pre class="bg-[#1d1d1d] text-emerald-300 p-2 rounded font-mono text-xs overflow-x-auto">${s.example}</pre></div></div>`;
+                                        })
+                                        .join("");
 
                 hubCard.innerHTML = `
                     <div class="hub-header p-4 bg-[#363636] border-b border-[#3d3d3d] flex items-center justify-between cursor-pointer select-none">
@@ -286,6 +327,7 @@
                                  ${clientMethods}
                                </div>`
                         : "" : ""}
+                        ${schemas ? `<div class="m-4 border border-[#444] bg-[#252525] rounded-lg p-4"><h4 class="text-white font-semibold text-lg mb-4">🧩 Schemas</h4><div class="grid gap-3 md:grid-cols-2">${schemas}</div></div>` : ""}
                     </div>
                 
                   `;

@@ -125,7 +125,7 @@ public class ExtensionsInternalTests
             method!.Invoke(null, new object[] { typeof(Dictionary<string, List<int?>>) }));
 
         // Assert
-        Assert.Equal("Dictionary<String, List<Nullable<Int32>>>", formatted);
+        Assert.Equal("Dictionary<string, List<int?>>", formatted);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class ExtensionsInternalTests
         var formatted = Assert.IsType<string>(method!.Invoke(null, new object[] { parameter }));
 
         // Assert
-        Assert.Equal("Nullable<Int32>?", formatted);
+        Assert.Equal("int?", formatted);
     }
 
     [Fact]

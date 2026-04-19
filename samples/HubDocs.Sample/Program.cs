@@ -30,7 +30,21 @@ app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Configure HubDocs - discovers hubs with [HubDocs] attribute from registered endpoints
-app.AddHubDocs();
+app.AddHubDocs(options =>
+{
+    options.Title = "HubDocs Sample SignalR API";
+    options.Version = "1.0.0";
+    options.Description = "Sample project showing HubDocs rich JSON export and interactive SignalR hub explorer.";
+    options.ProjectUrl = "https://github.com/mberrishdev/HubDocs";
+    options.TermsOfService = "https://github.com/mberrishdev/HubDocs/blob/main/LICENSE";
+
+    options.Contact.Name = "HubDocs Team";
+    options.Contact.Email = "support@hubdocs.dev";
+    options.Contact.Url = "https://github.com/mberrishdev/HubDocs/issues";
+
+    options.License.Name = "MIT";
+    options.License.Url = "https://github.com/mberrishdev/HubDocs/blob/main/LICENSE";
+});
 
 app.MapControllers();
 

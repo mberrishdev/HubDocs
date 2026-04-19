@@ -60,6 +60,19 @@
                     <h1 class="text-3xl font-bold text-white">HubDocs</h1>
                     <p class="text-gray-400 mt-1">SignalR Hubs Explorer</p>
                 </div>
+                    <section id="api-info" class="hidden mt-5 bg-[#202020] border border-[#3a3a3a] rounded-lg p-5">
+                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                            <div>
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <h2 id="api-title" class="text-2xl font-semibold text-white"></h2>
+                                    <span id="api-version" class="text-xs uppercase tracking-wide bg-blue-900/50 border border-blue-700 text-blue-200 px-2 py-1 rounded"></span>
+                                </div>
+                                <p id="api-description" class="text-gray-300 mt-2"></p>
+                            </div>
+                        </div>
+
+                        <div id="api-links" class="mt-4 text-sm text-gray-300 space-y-1"></div>
+                    </section>
             </div>
             <div class="flex items-center gap-4">
                 <div class="text-sm text-gray-400">
@@ -90,6 +103,7 @@
                 </a>
             </div>
         </div>
+
     </header>
 
     <div id="hubs" class="space-y-6"></div>
@@ -125,9 +139,55 @@
 <script>
     const BASE_API_URL = "";
 
+        function esc(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;");
+        }
+
+        function renderApiInfo(doc) {
+            if (!doc || !doc.hubdocs) return;
+
+            const meta = doc.hubdocs;
+            const section = document.getElementById("api-info");
+            const title = document.getElementById("api-title");
+            const version = document.getElementById("api-version");
+            const description = document.getElementById("api-description");
+            const links = document.getElementById("api-links");
+
+            title.textContent = meta.title || "HubDocs";
+            version.textContent = meta.version || "v1";
+            description.textContent = meta.description || "";
+
+            const rows = [];
+            if (meta.projectUrl) rows.push(`Project: <a class="text-blue-400 hover:underline" target="_blank" href="${esc(meta.projectUrl)}">${esc(meta.projectUrl)}</a>`);
+            if (meta.termsOfService) rows.push(`Terms: <a class="text-blue-400 hover:underline" target="_blank" href="${esc(meta.termsOfService)}">${esc(meta.termsOfService)}</a>`);
+
+            if (meta.contact) {
+                const contactParts = [];
+                if (meta.contact.name) contactParts.push(esc(meta.contact.name));
+                if (meta.contact.email) contactParts.push(`<a class="text-blue-400 hover:underline" href="mailto:${esc(meta.contact.email)}">${esc(meta.contact.email)}</a>`);
+                if (meta.contact.url) contactParts.push(`<a class="text-blue-400 hover:underline" target="_blank" href="${esc(meta.contact.url)}">${esc(meta.contact.url)}</a>`);
+                if (contactParts.length > 0) rows.push(`Contact: ${contactParts.join(" · ")}`);
+            }
+
+            if (meta.license && (meta.license.name || meta.license.url)) {
+                const license = meta.license.url
+                    ? `<a class="text-blue-400 hover:underline" target="_blank" href="${esc(meta.license.url)}">${esc(meta.license.name || meta.license.url)}</a>`
+                    : esc(meta.license.name);
+                rows.push(`License: ${license}`);
+            }
+
+            links.innerHTML = rows.map((r) => `<div>${r}</div>`).join("");
+            section.classList.remove("hidden");
+        }
+
     fetch(`${BASE_API_URL}/hubdocs/hubdocs.json`)
         .then((res) => res.json())
-        .then((hubs) => {
+        .then((doc) => {
+                renderApiInfo(doc);
+            const hubs = Array.isArray(doc) ? doc : (doc.hubs || []);
             const container = document.getElementById("hubs");
             const hubCount = document.getElementById("hub-count");
 
